@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Search, Users, Trending, Hash } from 'lucide-react';
+import { Search, Users, TrendingUp, Hash } from 'lucide-react';
 
 const DiscoveryPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -75,7 +75,7 @@ const DiscoveryPage = () => {
       {!searchTerm && (
         <div className="mb-6">
           <h2 className="text-lg font-poppins font-semibold mb-3 flex items-center gap-2">
-            <Trending className="h-5 w-5" />
+            <TrendingUp className="h-5 w-5" />
             Trending Searches
           </h2>
           <div className="flex flex-wrap gap-2">
