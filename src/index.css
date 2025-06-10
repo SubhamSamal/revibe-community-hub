@@ -28,8 +28,8 @@
     --success: 145 63% 42%; /* #27AE60 */
     --success-foreground: 0 0% 100%;
 
-    --muted: 218 11% 65%; /* #9CA3AF */
-    --muted-foreground: 215 10% 40%; /* Balanced gray for light background */
+    --muted: 220 10% 85%;           /* #E2E6EA – very light gray, smooth background tone */
+    --muted-foreground: 215 10% 40%; /* #99A2AD – brighter gray text for readability */
 
     --border: 216 12% 84%; /* #D1D5DB */
     --input: 0 0% 100%; /* White input field on white background */
