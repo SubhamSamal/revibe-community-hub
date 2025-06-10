@@ -1,14 +1,16 @@
-
 import { useState } from 'react';
 import { Calendar, Search, User, Menu, X } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import EventFeed from '../components/EventFeed';
 import DiscoveryPage from '../components/DiscoveryPage';
 import ProfilePage from '../components/ProfilePage';
+import logoWhite from '../assets/revibe-monkey-white.svg'; // White logo for dark theme
+import logoDark from '../assets/revibe-monkey.svg'; // Dark logo for light theme
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('feed');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDarkTheme, setIsDarkTheme] = useState(false); // Assuming you'll manage theme state
 
   const tabs = [
     { id: 'feed', label: 'Events', icon: Calendar },
@@ -29,6 +31,11 @@ const Index = () => {
     }
   };
 
+  // Function to handle theme change (you might already have this in your ThemeToggle)
+  const handleThemeChange = (isDark: boolean) => {
+    setIsDarkTheme(isDark);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -37,8 +44,12 @@ const Index = () => {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">R</span>
+              <div className="flex items-center">
+                <img 
+                  src={isDarkTheme ? logoWhite : logoDark} 
+                  alt="Revibe Logo" 
+                  className="h-8 w-auto" // Adjust height as needed
+                />
               </div>
               <span className="text-xl font-poppins font-bold">Revibe</span>
             </div>
@@ -66,7 +77,7 @@ const Index = () => {
 
             {/* Right Side */}
             <div className="flex items-center gap-4">
-              <ThemeToggle />
+              <ThemeToggle onThemeChange={handleThemeChange} />
               
               {/* Mobile Menu Button */}
               <button

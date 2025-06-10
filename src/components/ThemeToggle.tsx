@@ -1,8 +1,11 @@
-
 import { Moon, Sun } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-const ThemeToggle = () => {
+interface ThemeToggleProps {
+  onThemeChange?: (isDark: boolean) => void;
+}
+
+const ThemeToggle = ({ onThemeChange }: ThemeToggleProps) => {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -10,6 +13,7 @@ const ThemeToggle = () => {
     const isDarkMode = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
     setIsDark(isDarkMode);
     updateTheme(isDarkMode);
+    if (onThemeChange) onThemeChange(isDarkMode);
   }, []);
 
   const updateTheme = (dark: boolean) => {
@@ -27,6 +31,7 @@ const ThemeToggle = () => {
     const newTheme = !isDark;
     setIsDark(newTheme);
     updateTheme(newTheme);
+    if (onThemeChange) onThemeChange(newTheme);
   };
 
   return (
