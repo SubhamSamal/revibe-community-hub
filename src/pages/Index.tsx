@@ -4,8 +4,8 @@ import ThemeToggle from '../components/ThemeToggle';
 import EventFeed from '../components/EventFeed';
 import DiscoveryPage from '../components/DiscoveryPage';
 import ProfilePage from '../components/ProfilePage';
-import logoWhite from '../assets/revibe-monkey-white.svg'; // White logo for dark theme
-import logoDark from '../assets/revibe-monkey.svg'; // Dark logo for light theme
+import logoWhite from '../assets/Revibe-logo-main.svg'; // White logo for dark theme
+import logoDark from '../assets/Revibe-logo-main.svg'; // Dark logo for light theme
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('feed');
@@ -48,10 +48,10 @@ const Index = () => {
                 <img 
                   src={isDarkTheme ? logoWhite : logoDark} 
                   alt="Revibe Logo" 
-                  className="h-8 w-auto" // Adjust height as needed
+                  className="h-14 w-auto" // Adjust height as needed
                 />
               </div>
-              <span className="text-xl font-poppins font-bold">Revibe</span>
+              {/* <span className="text-xl font-poppins font-bold">Revibe</span> */}
             </div>
 
             {/* Desktop Navigation */}
