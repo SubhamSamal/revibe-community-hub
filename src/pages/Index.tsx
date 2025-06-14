@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Calendar, Search, User, Plus, Menu, X, Users } from 'lucide-react';
+import { Calendar, Search, User, Plus, Menu, X, Users, Settings, HelpCircle, LogOut } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import EventFeed from '../components/EventFeed';
 import DiscoveryPage from '../components/DiscoveryPage';
@@ -20,7 +20,12 @@ const Index = () => {
     { id: 'posts', label: 'Posts', icon: Plus },
     { id: 'communities', label: 'Communities', icon: Users },
     { id: 'discovery', label: 'Discover', icon: Search },
+  ];
+
+  const menuItems = [
     { id: 'profile', label: 'Profile', icon: User },
+    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'contact', label: 'Contact Us', icon: HelpCircle },
   ];
 
   const renderTabContent = () => {
@@ -42,6 +47,22 @@ const Index = () => {
 
   const handleThemeChange = (isDark: boolean) => {
     setIsDarkTheme(isDark);
+  };
+
+  const handleMenuItemClick = (itemId: string) => {
+    if (itemId === 'profile') {
+      setActiveTab('profile');
+    } else if (itemId === 'settings') {
+      // Handle settings action
+      console.log('Settings clicked');
+    } else if (itemId === 'contact') {
+      // Handle contact action
+      console.log('Contact us clicked');
+    } else if (itemId === 'logout') {
+      // Handle logout action
+      console.log('Logout clicked');
+    }
+    setIsMobileMenuOpen(false);
   };
 
   return (
@@ -82,14 +103,27 @@ const Index = () => {
               })}
             </nav>
 
-            {/* Right Side */}
-            <div className="flex items-center gap-4">
+            {/* Right Side - Desktop */}
+            <div className="hidden md:flex items-center gap-4">
+              <button
+                onClick={() => setActiveTab('profile')}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                  activeTab === 'profile'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                }`}
+              >
+                <User className="h-4 w-4" />
+                Profile
+              </button>
               <ThemeToggle onThemeChange={handleThemeChange} />
-              
-              {/* Mobile Menu Button */}
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent"
+                className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent"
               >
                 {isMobileMenuOpen ? (
                   <X className="h-5 w-5" />
@@ -104,6 +138,7 @@ const Index = () => {
           {isMobileMenuOpen && (
             <div className="md:hidden border-t border-border bg-background">
               <nav className="py-4 space-y-2">
+                {/* Navigation Tabs */}
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
                   return (
@@ -124,6 +159,46 @@ const Index = () => {
                     </button>
                   );
                 })}
+
+                {/* Separator */}
+                <div className="my-3 border-t border-border mx-4"></div>
+
+                {/* Menu Items */}
+                {menuItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => handleMenuItemClick(item.id)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors duration-200 ${
+                        (item.id === 'profile' && activeTab === 'profile')
+                          ? 'bg-primary text-primary-foreground rounded-md mx-4'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {item.label}
+                    </button>
+                  );
+                })}
+
+                {/* Theme Toggle */}
+                <div className="flex items-center justify-between px-4 py-3">
+                  <span className="text-sm font-medium text-muted-foreground">Theme</span>
+                  <ThemeToggle onThemeChange={handleThemeChange} />
+                </div>
+
+                {/* Separator */}
+                <div className="my-3 border-t border-border mx-4"></div>
+
+                {/* Logout Button */}
+                <button
+                  onClick={() => handleMenuItemClick('logout')}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Log Out
+                </button>
               </nav>
             </div>
           )}
