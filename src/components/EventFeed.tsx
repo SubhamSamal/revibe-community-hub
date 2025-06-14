@@ -1,62 +1,93 @@
 
-import { useState } from 'react';
-import { Filter, Search } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Search, Loader2 } from 'lucide-react';
 import EventCard from './EventCard';
+import { Skeleton } from './ui/skeleton';
+import { fetchEvents, Event } from '../services/eventService';
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 
 const EventFeed = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
+  const [events, setEvents] = useState<Event[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(true);
+  const [isFetchingNextPage, setIsFetchingNextPage] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   const categories = ['All', 'Music', 'Tech', 'Sports', 'Food', 'Art', 'Comedy'];
-  
-  const mockEvents = [
-    {
-      title: "Sunburn Arena ft. Martin Garrix",
-      image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=400&h=300&fit=crop",
-      date: "Dec 15, 2024 • 8:00 PM",
-      venue: "JLN Stadium, Delhi",
-      price: "₹2,999",
-      source: "BookMyShow",
-      category: "Music",
-      attendees: 1200
-    },
-    {
-      title: "Delhi Food & Wine Festival",
-      image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=300&fit=crop",
-      date: "Dec 20-22, 2024",
-      venue: "Kingdom of Dreams, Gurgaon",
-      price: "₹799",
-      source: "District",
-      category: "Food",
-      attendees: 850
-    },
-    {
-      title: "Stand-up Comedy Night",
-      image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&h=300&fit=crop",
-      date: "Dec 18, 2024 • 7:30 PM",
-      venue: "Canvas Laugh Club, Noida",
-      price: "₹599",
-      source: "BookMyShow",
-      category: "Comedy",
-      attendees: 120
-    },
-    {
-      title: "Tech Startup Meetup",
-      image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=300&fit=crop",
-      date: "Dec 16, 2024 • 6:00 PM",
-      venue: "91 Springboard, Gurgaon",
-      price: "Free",
-      source: "Meetup",
-      category: "Tech",
-      attendees: 95
-    }
-  ];
 
-  const filteredEvents = mockEvents.filter(event => {
-    const matchesCategory = selectedCategory === 'All' || event.category === selectedCategory;
-    const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
+  // Debounced search term
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearchTerm(searchTerm), 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Load initial events
+  useEffect(() => {
+    loadInitialEvents();
+  }, [selectedCategory, debouncedSearchTerm]);
+
+  const loadInitialEvents = async () => {
+    setIsInitialLoading(true);
+    setEvents([]);
+    setPage(1);
+    
+    try {
+      const response = await fetchEvents(1, 10, selectedCategory, debouncedSearchTerm);
+      setEvents(response.events);
+      setHasNextPage(response.hasNextPage);
+    } catch (error) {
+      console.error('Error loading events:', error);
+    } finally {
+      setIsInitialLoading(false);
+    }
+  };
+
+  const fetchNextPage = async () => {
+    if (isFetchingNextPage || !hasNextPage) return;
+    
+    setIsFetchingNextPage(true);
+    const nextPage = page + 1;
+    
+    try {
+      const response = await fetchEvents(nextPage, 10, selectedCategory, debouncedSearchTerm);
+      setEvents(prev => [...prev, ...response.events]);
+      setPage(nextPage);
+      setHasNextPage(response.hasNextPage);
+    } catch (error) {
+      console.error('Error fetching next page:', error);
+    } finally {
+      setIsFetchingNextPage(false);
+    }
+  };
+
+  // Use infinite scroll hook
+  useInfiniteScroll({
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
   });
+
+  // Memoize skeleton cards to prevent re-renders
+  const skeletonCards = useMemo(() => (
+    Array.from({ length: 6 }, (_, index) => (
+      <div key={index} className="bg-card border border-border rounded-lg overflow-hidden">
+        <Skeleton className="w-full h-48" />
+        <div className="p-4 space-y-3">
+          <Skeleton className="h-6 w-3/4" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
+          <div className="flex justify-between items-center pt-2">
+            <Skeleton className="h-6 w-20" />
+            <Skeleton className="h-8 w-24" />
+          </div>
+        </div>
+      </div>
+    ))
+  ), []);
 
   return (
     <div className="max-w-4xl mx-auto p-4">
@@ -97,14 +128,34 @@ const EventFeed = () => {
 
       {/* Events Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {filteredEvents.map((event, index) => (
-          <EventCard key={index} {...event} />
-        ))}
+        {isInitialLoading ? (
+          skeletonCards
+        ) : (
+          events.map((event) => (
+            <EventCard key={event.id} {...event} />
+          ))
+        )}
       </div>
 
-      {filteredEvents.length === 0 && (
+      {/* Loading More Indicator */}
+      {isFetchingNextPage && (
+        <div className="flex justify-center items-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin mr-2" />
+          <span className="text-muted-foreground">Loading more events...</span>
+        </div>
+      )}
+
+      {/* No Events Message */}
+      {!isInitialLoading && events.length === 0 && (
         <div className="text-center py-12">
           <p className="text-muted-foreground">No events found matching your criteria</p>
+        </div>
+      )}
+
+      {/* End of Results */}
+      {!hasNextPage && events.length > 0 && (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">You've reached the end of events!</p>
         </div>
       )}
     </div>

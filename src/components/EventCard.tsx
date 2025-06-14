@@ -1,5 +1,6 @@
 
 import { Calendar, MapPin, Users, ExternalLink } from 'lucide-react';
+import LazyImage from './LazyImage';
 
 interface EventCardProps {
   title: string;
@@ -16,7 +17,7 @@ const EventCard = ({ title, image, date, venue, price, source, category, attende
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 animate-fade-in">
       <div className="relative">
-        <img 
+        <LazyImage 
           src={image} 
           alt={title}
           className="w-full h-48 object-cover"
