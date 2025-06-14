@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar, Search, User, Plus, Menu, X, Users, Settings, HelpCircle, LogOut } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import EventFeed from '../components/EventFeed';
@@ -14,6 +13,21 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState('feed');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(false);
+
+  // Initialize theme on component mount
+  useEffect(() => {
+    const theme = localStorage.getItem('theme');
+    const isDarkMode = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    setIsDarkTheme(isDarkMode);
+    
+    // Apply theme to document
+    const root = window.document.documentElement;
+    if (isDarkMode) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, []);
 
   const tabs = [
     { id: 'feed', label: 'Feed', icon: Calendar },

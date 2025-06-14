@@ -1,3 +1,4 @@
+
 import { Moon, Sun } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -12,9 +13,9 @@ const ThemeToggle = ({ onThemeChange }: ThemeToggleProps) => {
     const theme = localStorage.getItem('theme');
     const isDarkMode = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
     setIsDark(isDarkMode);
-    updateTheme(isDarkMode);
+    // Don't apply theme here since Index component handles it now
     if (onThemeChange) onThemeChange(isDarkMode);
-  }, []);
+  }, [onThemeChange]);
 
   const updateTheme = (dark: boolean) => {
     const root = window.document.documentElement;
