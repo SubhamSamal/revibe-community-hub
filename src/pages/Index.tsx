@@ -82,45 +82,8 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-8">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                      activeTab === tab.id
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                    }`}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </nav>
-
-            {/* Right Side - Desktop */}
-            <div className="hidden md:flex items-center gap-4">
-              <button
-                onClick={() => setActiveTab('profile')}
-                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                  activeTab === 'profile'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                }`}
-              >
-                <User className="h-4 w-4" />
-                Profile
-              </button>
-              <ThemeToggle onThemeChange={handleThemeChange} />
-            </div>
-
-            {/* Mobile Menu Button */}
-            <div className="md:hidden">
+            {/* Hamburger Menu Button - Now visible on all screen sizes */}
+            <div>
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent"
@@ -134,9 +97,9 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Mobile Navigation */}
+          {/* Hamburger Menu Content */}
           {isMobileMenuOpen && (
-            <div className="md:hidden border-t border-border bg-background">
+            <div className="border-t border-border bg-background">
               <nav className="py-4 space-y-2">
                 {/* Navigation Tabs */}
                 {tabs.map((tab) => {
