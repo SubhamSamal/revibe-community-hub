@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useMemo } from 'react';
-import { Search, Loader2 } from 'lucide-react';
+import { Loader2, Heart, Calendar, Users } from 'lucide-react';
 import EventCard from './EventCard';
 import { Skeleton } from './ui/skeleton';
 import { fetchEvents, Event } from '../services/eventService';
@@ -8,7 +8,6 @@ import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 
 const EventFeed = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [searchTerm, setSearchTerm] = useState('');
   const [events, setEvents] = useState<Event[]>([]);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(true);
@@ -17,18 +16,10 @@ const EventFeed = () => {
 
   const categories = ['All', 'Music', 'Tech', 'Sports', 'Food', 'Art', 'Comedy'];
 
-  // Debounced search term
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
-  
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearchTerm(searchTerm), 300);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
   // Load initial events
   useEffect(() => {
     loadInitialEvents();
-  }, [selectedCategory, debouncedSearchTerm]);
+  }, [selectedCategory]);
 
   const loadInitialEvents = async () => {
     setIsInitialLoading(true);
@@ -36,7 +27,7 @@ const EventFeed = () => {
     setPage(1);
     
     try {
-      const response = await fetchEvents(1, 10, selectedCategory, debouncedSearchTerm);
+      const response = await fetchEvents(1, 10, selectedCategory, '');
       setEvents(response.events);
       setHasNextPage(response.hasNextPage);
     } catch (error) {
@@ -53,7 +44,7 @@ const EventFeed = () => {
     const nextPage = page + 1;
     
     try {
-      const response = await fetchEvents(nextPage, 10, selectedCategory, debouncedSearchTerm);
+      const response = await fetchEvents(nextPage, 10, selectedCategory, '');
       setEvents(prev => [...prev, ...response.events]);
       setPage(nextPage);
       setHasNextPage(response.hasNextPage);
@@ -91,24 +82,6 @@ const EventFeed = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-poppins font-bold mb-2">Discover Events</h1>
-        <p className="text-muted-foreground">Find amazing events happening in Delhi-NCR</p>
-      </div>
-
-      {/* Search Bar */}
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <input
-          type="text"
-          placeholder="Search events, artists, venues..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-        />
-      </div>
-
       {/* Category Filters */}
       <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide pb-2">
         {categories.map((category) => (
@@ -148,7 +121,7 @@ const EventFeed = () => {
       {/* No Events Message */}
       {!isInitialLoading && events.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">No events found matching your criteria</p>
+          <p className="text-muted-foreground">No events found for this category</p>
         </div>
       )}
 

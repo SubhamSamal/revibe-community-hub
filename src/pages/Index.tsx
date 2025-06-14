@@ -15,7 +15,7 @@ const Index = () => {
   const [isDarkTheme, setIsDarkTheme] = useState(false);
 
   const tabs = [
-    { id: 'feed', label: 'Events', icon: Calendar },
+    { id: 'feed', label: 'Feed', icon: Calendar },
     { id: 'posts', label: 'Posts', icon: Plus },
     { id: 'discovery', label: 'Discover', icon: Search },
     { id: 'profile', label: 'Profile', icon: User },

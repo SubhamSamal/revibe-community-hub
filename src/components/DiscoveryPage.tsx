@@ -1,10 +1,45 @@
 
-import { useState } from 'react';
-import { Search, Users, TrendingUp, Hash } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Search, Users, TrendingUp, Hash, Loader2 } from 'lucide-react';
+import EventCard from './EventCard';
+import { Skeleton } from './ui/skeleton';
+import { fetchEvents, Event } from '../services/eventService';
 
 const DiscoveryPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('communities');
+  const [activeTab, setActiveTab] = useState('events');
+  const [events, setEvents] = useState<Event[]>([]);
+  const [isLoadingEvents, setIsLoadingEvents] = useState(false);
+
+  // Debounced search term
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearchTerm(searchTerm), 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Load events when search term changes
+  useEffect(() => {
+    if (activeTab === 'events') {
+      loadEvents();
+    }
+  }, [debouncedSearchTerm, activeTab]);
+
+  const loadEvents = async () => {
+    if (activeTab !== 'events') return;
+    
+    setIsLoadingEvents(true);
+    
+    try {
+      const response = await fetchEvents(1, 12, 'All', debouncedSearchTerm);
+      setEvents(response.events);
+    } catch (error) {
+      console.error('Error loading events:', error);
+    } finally {
+      setIsLoadingEvents(false);
+    }
+  };
 
   const communities = [
     {
@@ -51,12 +86,25 @@ const DiscoveryPage = () => {
     community.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const skeletonCards = useMemo(() => (
+    Array.from({ length: 6 }, (_, index) => (
+      <div key={index} className="bg-card border border-border rounded-lg overflow-hidden">
+        <Skeleton className="w-full h-48" />
+        <div className="p-4 space-y-3">
+          <Skeleton className="h-6 w-3/4" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
+        </div>
+      </div>
+    ))
+  ), []);
+
   return (
     <div className="max-w-4xl mx-auto p-4">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-poppins font-bold mb-2">Discovery</h1>
-        <p className="text-muted-foreground">Find communities and events that match your vibe</p>
+        <p className="text-muted-foreground">Find events and communities that match your vibe</p>
       </div>
 
       {/* Search Bar */}
@@ -64,11 +112,35 @@ const DiscoveryPage = () => {
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <input
           type="text"
-          placeholder="Search communities, events, or interests..."
+          placeholder="Search events, communities, or interests..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         />
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="flex gap-4 mb-6 border-b border-border">
+        <button
+          onClick={() => setActiveTab('events')}
+          className={`pb-2 px-1 text-sm font-medium transition-colors duration-200 ${
+            activeTab === 'events'
+              ? 'text-primary border-b-2 border-primary'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          Events
+        </button>
+        <button
+          onClick={() => setActiveTab('communities')}
+          className={`pb-2 px-1 text-sm font-medium transition-colors duration-200 ${
+            activeTab === 'communities'
+              ? 'text-primary border-b-2 border-primary'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          Communities
+        </button>
       </div>
 
       {/* Trending Searches */}
@@ -93,55 +165,79 @@ const DiscoveryPage = () => {
         </div>
       )}
 
-      {/* Communities Section */}
-      <div className="mb-6">
-        <h2 className="text-lg font-poppins font-semibold mb-4 flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          Communities
-        </h2>
-        
-        <div className="space-y-4">
-          {filteredCommunities.map((community, index) => (
-            <div key={index} className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-all duration-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={community.image}
-                    alt={community.name}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                  <div>
-                    <h3 className="font-semibold text-foreground">{community.name}</h3>
-                    <p className="text-sm text-muted-foreground">{community.description}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {community.members.toLocaleString()} members
-                    </p>
-                  </div>
-                </div>
-                
-                <button
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                    community.isJoined
-                      ? 'bg-muted text-muted-foreground hover:bg-destructive hover:text-destructive-foreground'
-                      : 'bg-primary text-primary-foreground hover:bg-primary/90'
-                  }`}
-                >
-                  {community.isJoined ? 'Joined' : 'Join'}
-                </button>
-              </div>
+      {/* Content Based on Active Tab */}
+      {activeTab === 'events' ? (
+        <div>
+          <h2 className="text-lg font-poppins font-semibold mb-4">Events</h2>
+          
+          {isLoadingEvents ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {skeletonCards}
             </div>
-          ))}
-        </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {events.map((event) => (
+                <EventCard key={event.id} {...event} />
+              ))}
+            </div>
+          )}
 
-        {filteredCommunities.length === 0 && searchTerm && (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">No communities found matching "{searchTerm}"</p>
-            <button className="mt-2 text-primary hover:text-primary/80 text-sm">
-              Create a new community
-            </button>
+          {!isLoadingEvents && events.length === 0 && searchTerm && (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No events found matching "{searchTerm}"</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div>
+          <h2 className="text-lg font-poppins font-semibold mb-4 flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Communities
+          </h2>
+          
+          <div className="space-y-4">
+            {filteredCommunities.map((community, index) => (
+              <div key={index} className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-all duration-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={community.image}
+                      alt={community.name}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                    <div>
+                      <h3 className="font-semibold text-foreground">{community.name}</h3>
+                      <p className="text-sm text-muted-foreground">{community.description}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {community.members.toLocaleString()} members
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <button
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                      community.isJoined
+                        ? 'bg-muted text-muted-foreground hover:bg-destructive hover:text-destructive-foreground'
+                        : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                    }`}
+                  >
+                    {community.isJoined ? 'Joined' : 'Join'}
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        )}
-      </div>
+
+          {filteredCommunities.length === 0 && searchTerm && (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No communities found matching "{searchTerm}"</p>
+              <button className="mt-2 text-primary hover:text-primary/80 text-sm">
+                Create a new community
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
