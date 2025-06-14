@@ -1,11 +1,12 @@
 
 import { useState } from 'react';
-import { Calendar, Search, User, Plus, Menu, X } from 'lucide-react';
+import { Calendar, Search, User, Plus, Menu, X, Users } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import EventFeed from '../components/EventFeed';
 import DiscoveryPage from '../components/DiscoveryPage';
 import ProfilePage from '../components/ProfilePage';
 import PostsPage from '../components/PostsPage';
+import CommunitiesPage from '../components/CommunitiesPage';
 import logoWhite from '../assets/Revibe-logo-main.svg';
 import logoDark from '../assets/Revibe-logo-main.svg';
 
@@ -17,6 +18,7 @@ const Index = () => {
   const tabs = [
     { id: 'feed', label: 'Feed', icon: Calendar },
     { id: 'posts', label: 'Posts', icon: Plus },
+    { id: 'communities', label: 'Communities', icon: Users },
     { id: 'discovery', label: 'Discover', icon: Search },
     { id: 'profile', label: 'Profile', icon: User },
   ];
@@ -27,6 +29,8 @@ const Index = () => {
         return <EventFeed />;
       case 'posts':
         return <PostsPage />;
+      case 'communities':
+        return <CommunitiesPage />;
       case 'discovery':
         return <DiscoveryPage />;
       case 'profile':
