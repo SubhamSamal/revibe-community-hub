@@ -82,7 +82,28 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Hamburger Menu Button - Now visible on all screen sizes */}
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-8">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                      activeTab === tab.id
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* Hamburger Menu Button */}
             <div>
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -101,31 +122,6 @@ const Index = () => {
           {isMobileMenuOpen && (
             <div className="border-t border-border bg-background">
               <nav className="py-4 space-y-2">
-                {/* Navigation Tabs */}
-                {tabs.map((tab) => {
-                  const Icon = tab.icon;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => {
-                        setActiveTab(tab.id);
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors duration-200 ${
-                        activeTab === tab.id
-                          ? 'bg-primary text-primary-foreground rounded-md mx-4'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      <Icon className="h-4 w-4" />
-                      {tab.label}
-                    </button>
-                  );
-                })}
-
-                {/* Separator */}
-                <div className="my-3 border-t border-border mx-4"></div>
-
                 {/* Menu Items */}
                 {menuItems.map((item) => {
                   const Icon = item.icon;
