@@ -1,19 +1,22 @@
+
 import { useState } from 'react';
-import { Calendar, Search, User, Menu, X } from 'lucide-react';
+import { Calendar, Search, User, Plus, Menu, X } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import EventFeed from '../components/EventFeed';
 import DiscoveryPage from '../components/DiscoveryPage';
 import ProfilePage from '../components/ProfilePage';
-import logoWhite from '../assets/Revibe-logo-main.svg'; // White logo for dark theme
-import logoDark from '../assets/Revibe-logo-main.svg'; // Dark logo for light theme
+import PostsPage from '../components/PostsPage';
+import logoWhite from '../assets/Revibe-logo-main.svg';
+import logoDark from '../assets/Revibe-logo-main.svg';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('feed');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDarkTheme, setIsDarkTheme] = useState(false); // Assuming you'll manage theme state
+  const [isDarkTheme, setIsDarkTheme] = useState(false);
 
   const tabs = [
     { id: 'feed', label: 'Events', icon: Calendar },
+    { id: 'posts', label: 'Posts', icon: Plus },
     { id: 'discovery', label: 'Discover', icon: Search },
     { id: 'profile', label: 'Profile', icon: User },
   ];
@@ -22,6 +25,8 @@ const Index = () => {
     switch (activeTab) {
       case 'feed':
         return <EventFeed />;
+      case 'posts':
+        return <PostsPage />;
       case 'discovery':
         return <DiscoveryPage />;
       case 'profile':
@@ -31,7 +36,6 @@ const Index = () => {
     }
   };
 
-  // Function to handle theme change (you might already have this in your ThemeToggle)
   const handleThemeChange = (isDark: boolean) => {
     setIsDarkTheme(isDark);
   };
@@ -48,10 +52,9 @@ const Index = () => {
                 <img 
                   src={isDarkTheme ? logoWhite : logoDark} 
                   alt="Revibe Logo" 
-                  className="h-14 w-auto" // Adjust height as needed
+                  className="h-14 w-auto"
                 />
               </div>
-              {/* <span className="text-xl font-poppins font-bold">Revibe</span> */}
             </div>
 
             {/* Desktop Navigation */}
