@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Calendar, MapPin, DollarSign, Users, FileText, Globe, Lock } from 'lucide-react';
+import { Calendar, MapPin, DollarSign, Users, FileText, Globe, Lock, Upload, Palette } from 'lucide-react';
 import { EventTemplate, EventPost } from '../types/posts';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -11,10 +11,18 @@ import { createEventPost } from '../services/postsService';
 interface EventCreationFormProps {
   template: EventTemplate;
   onEventCreated: (event: EventPost) => void;
-  onBack: () => void;
+  onTemplateChange: () => void;
+  onCategoryChange: (category: string) => void;
+  selectedCategory: string;
 }
 
-const EventCreationForm = ({ template, onEventCreated, onBack }: EventCreationFormProps) => {
+const EventCreationForm = ({ 
+  template, 
+  onEventCreated, 
+  onTemplateChange, 
+  onCategoryChange, 
+  selectedCategory 
+}: EventCreationFormProps) => {
   const [formData, setFormData] = useState({
     title: '',
     venue: '',
@@ -23,12 +31,26 @@ const EventCreationForm = ({ template, onEventCreated, onBack }: EventCreationFo
     cost: '',
     spots: '',
     description: '',
-    isPublic: true
+    isPublic: true,
+    eventImage: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const categories = ['All', 'Music', 'Tech', 'Sports', 'Food', 'Art', 'Comedy'];
+
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        handleInputChange('eventImage', e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,13 +66,14 @@ const EventCreationForm = ({ template, onEventCreated, onBack }: EventCreationFo
         cost: formData.cost,
         spots: parseInt(formData.spots),
         description: formData.description,
-        category: template.category,
+        category: selectedCategory,
         template,
-        hostName: 'You', // In real app, get from user context
+        hostName: 'You',
         hostId: 'current-user-id',
         coHosts: [],
         isPublic: formData.isPublic,
-        invitedUsers: []
+        invitedUsers: [],
+        eventImage: formData.eventImage
       };
 
       const createdEvent = await createEventPost(eventData);
@@ -65,23 +88,77 @@ const EventCreationForm = ({ template, onEventCreated, onBack }: EventCreationFo
   return (
     <div className="max-w-2xl mx-auto p-4">
       <div className="mb-6">
-        <Button variant="ghost" onClick={onBack} className="mb-4">
-          ← Back to Templates
-        </Button>
-        <h2 className="text-2xl font-bold mb-2">Create Your Event</h2>
-        <p className="text-muted-foreground">Fill in the details for your event</p>
+        <h1 className="text-2xl font-poppins font-bold mb-2">Create Event</h1>
+        <p className="text-muted-foreground">Create and share your custom party invitation</p>
       </div>
 
-      {/* Template Preview */}
-      <div 
-        className="mb-6 p-6 rounded-lg border"
-        style={{ backgroundColor: template.backgroundColor, color: template.textColor }}
-      >
-        <h3 className="font-semibold mb-2">Template: {template.name}</h3>
-        <p className="text-sm opacity-80">This is how your invitation will look</p>
+      {/* Category Selection */}
+      <div className="mb-6">
+        <Label className="text-base font-semibold mb-3 block">Event Category</Label>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => onCategoryChange(category)}
+              className={`p-3 border rounded-lg text-sm font-medium transition-all duration-200 ${
+                selectedCategory === category
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-border hover:border-primary hover:bg-accent'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Template Preview & Change */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <Label className="text-base font-semibold">Template</Label>
+          <Button variant="outline" onClick={onTemplateChange} size="sm">
+            <Palette className="h-4 w-4 mr-2" />
+            Change Template
+          </Button>
+        </div>
+        <div 
+          className="p-4 rounded-lg border"
+          style={{ backgroundColor: template.backgroundColor, color: template.textColor }}
+        >
+          <h3 className="font-semibold mb-1">{template.name}</h3>
+          <p className="text-sm opacity-80">This is how your invitation will look</p>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Event Image Upload */}
+        <div>
+          <Label htmlFor="image">Event Image</Label>
+          <div className="mt-2">
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                {formData.eventImage ? (
+                  <img src={formData.eventImage} alt="Event" className="w-full h-full object-cover" />
+                ) : (
+                  <Upload className="h-8 w-8 text-muted-foreground" />
+                )}
+              </div>
+              <div className="flex-1">
+                <Input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="cursor-pointer"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Upload an image for your event (optional)
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="title">Event Name *</Label>
@@ -212,9 +289,6 @@ const EventCreationForm = ({ template, onEventCreated, onBack }: EventCreationFo
         <div className="flex gap-4">
           <Button type="submit" disabled={isSubmitting} className="flex-1">
             {isSubmitting ? 'Creating...' : 'Create Event'}
-          </Button>
-          <Button type="button" variant="outline" onClick={onBack}>
-            Cancel
           </Button>
         </div>
       </form>

@@ -26,6 +26,7 @@ export interface EventPost {
   coHosts: string[];
   isPublic: boolean;
   createdAt: string;
+  eventImage?: string;
   rsvpResponses: {
     going: string[];
     maybe: string[];

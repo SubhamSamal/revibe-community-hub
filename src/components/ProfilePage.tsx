@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
-import { Edit3, Calendar, Users, Heart, Settings } from 'lucide-react';
+import { Edit3, Calendar, Users, Heart, Settings, Plus, Edit } from 'lucide-react';
+import { Button } from './ui/button';
 
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
@@ -46,6 +47,32 @@ const ProfilePage = () => {
       rating: 4
     }
   ];
+
+  const myEvents = [
+    {
+      id: "1",
+      title: "Tech Meetup Delhi",
+      date: "Dec 22, 7:00 PM",
+      venue: "Cyber Hub",
+      attendees: 45,
+      spots: 50,
+      status: "Active"
+    },
+    {
+      id: "2",
+      title: "Weekend House Party",
+      date: "Dec 18, 8:00 PM",
+      venue: "My Place",
+      attendees: 12,
+      spots: 15,
+      status: "Active"
+    }
+  ];
+
+  const handleEditEvent = (eventId: string) => {
+    console.log('Edit event:', eventId);
+    // In real app, navigate to edit form
+  };
 
   return (
     <div className="max-w-4xl mx-auto p-4">
@@ -119,7 +146,7 @@ const ProfilePage = () => {
             >
               <div className="flex items-center justify-center gap-2">
                 <Calendar className="h-4 w-4" />
-                Upcoming Events
+                Upcoming
               </div>
             </button>
             <button
@@ -133,6 +160,19 @@ const ProfilePage = () => {
               <div className="flex items-center justify-center gap-2">
                 <Heart className="h-4 w-4" />
                 Past Events
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('myEvents')}
+              className={`flex-1 py-3 px-4 text-sm font-medium border-b-2 transition-colors duration-200 ${
+                activeTab === 'myEvents'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <Plus className="h-4 w-4" />
+                My Events
               </div>
             </button>
           </div>
@@ -178,6 +218,40 @@ const ProfilePage = () => {
                         }`}
                       />
                     ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeTab === 'myEvents' && (
+            <div className="space-y-4">
+              {myEvents.map((event) => (
+                <div key={event.id} className="flex justify-between items-center py-3 border-b border-border last:border-b-0">
+                  <div>
+                    <h3 className="font-semibold">{event.title}</h3>
+                    <p className="text-sm text-muted-foreground">{event.date}</p>
+                    <p className="text-sm text-muted-foreground">{event.venue}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {event.attendees}/{event.spots} attendees
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      event.status === 'Active' 
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {event.status}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditEvent(event.id)}
+                    >
+                      <Edit className="h-3 w-3 mr-1" />
+                      Edit
+                    </Button>
                   </div>
                 </div>
               ))}
