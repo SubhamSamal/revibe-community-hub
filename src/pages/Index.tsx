@@ -16,18 +16,21 @@ const Index = () => {
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const { signOut } = useAuth();
 
-  // Initialize theme on component mount
+  // Initialize theme on component mount - default to dark theme
   useEffect(() => {
     const theme = localStorage.getItem('theme');
-    const isDarkMode = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    // Default to dark theme if no preference is set, or use stored preference
+    const isDarkMode = theme === 'dark' || (!theme && true); // Changed to default to true (dark)
     setIsDarkTheme(isDarkMode);
     
     // Apply theme to document
     const root = window.document.documentElement;
     if (isDarkMode) {
       root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
     } else {
       root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
     }
   }, []);
 

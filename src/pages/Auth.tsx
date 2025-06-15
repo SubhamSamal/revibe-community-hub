@@ -40,6 +40,20 @@ const Auth = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  // Initialize dark theme on mount
+  useEffect(() => {
+    const theme = localStorage.getItem('theme');
+    const isDarkMode = theme === 'dark' || (!theme && true); // Default to dark
+    const root = window.document.documentElement;
+    if (isDarkMode) {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, []);
+
   // Redirect if already authenticated
   useEffect(() => {
     if (user) {
@@ -50,7 +64,11 @@ const Auth = () => {
   const handlePhoneAuth = async () => {
     setLoading(true);
     try {
-      const fullPhoneNumber = `${countryCode}${phoneNumber}`;
+      // Clean the phone number - remove any non-digit characters except the leading +
+      const cleanPhoneNumber = phoneNumber.replace(/[^\d]/g, '');
+      const fullPhoneNumber = `${countryCode}${cleanPhoneNumber}`;
+      
+      console.log('Sending OTP to phone number:', fullPhoneNumber);
       
       if (!isOtpSent) {
         // Send OTP
@@ -65,6 +83,7 @@ const Auth = () => {
         });
 
         if (error) {
+          console.error('OTP send error:', error);
           if (error.message.includes('phone_provider_disabled') || error.message.includes('Unsupported phone provider')) {
             toast({
               title: "Phone Authentication Not Available",
@@ -80,7 +99,7 @@ const Auth = () => {
         setIsOtpSent(true);
         toast({
           title: "OTP Sent",
-          description: "Please check your phone for the verification code.",
+          description: `Please check your phone (${fullPhoneNumber}) for the verification code.`,
         });
       } else {
         // Verify OTP
@@ -314,7 +333,11 @@ const Auth = () => {
                         type="tel"
                         placeholder="Enter phone number"
                         value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value.replace(/[^0-9]/g, ''))}
+                        onChange={(e) => {
+                          // Only allow numbers and remove any formatting
+                          const value = e.target.value.replace(/[^0-9]/g, '');
+                          setPhoneNumber(value);
+                        }}
                         className="flex-1"
                       />
                     </div>
