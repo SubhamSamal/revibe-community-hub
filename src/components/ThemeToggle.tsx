@@ -11,8 +11,7 @@ const ThemeToggle = ({ onThemeChange }: ThemeToggleProps) => {
 
   useEffect(() => {
     const theme = localStorage.getItem('theme');
-    // Default to dark theme if no preference is set
-    const isDarkMode = theme === 'dark' || (!theme && true);
+    const isDarkMode = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
     setIsDark(isDarkMode);
     // Don't apply theme here since Index component handles it now
     if (onThemeChange) onThemeChange(isDarkMode);

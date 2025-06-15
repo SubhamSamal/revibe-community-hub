@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Search, User, Plus, Menu, X, Users, Settings, HelpCircle, LogOut } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
 import ThemeToggle from '../components/ThemeToggle';
 import EventFeed from '../components/EventFeed';
 import DiscoveryPage from '../components/DiscoveryPage';
@@ -14,23 +13,19 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState('feed');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(false);
-  const { signOut } = useAuth();
 
-  // Initialize theme on component mount - default to dark theme
+  // Initialize theme on component mount
   useEffect(() => {
     const theme = localStorage.getItem('theme');
-    // Default to dark theme if no preference is set, or use stored preference
-    const isDarkMode = theme === 'dark' || (!theme && true); // Changed to default to true (dark)
+    const isDarkMode = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
     setIsDarkTheme(isDarkMode);
     
     // Apply theme to document
     const root = window.document.documentElement;
     if (isDarkMode) {
       root.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
     } else {
       root.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
     }
   }, []);
 
@@ -72,11 +67,14 @@ const Index = () => {
     if (itemId === 'profile') {
       setActiveTab('profile');
     } else if (itemId === 'settings') {
+      // Handle settings action
       console.log('Settings clicked');
     } else if (itemId === 'contact') {
+      // Handle contact action
       console.log('Contact us clicked');
     } else if (itemId === 'logout') {
-      signOut();
+      // Handle logout action
+      console.log('Logout clicked');
     }
     setIsMobileMenuOpen(false);
   };
