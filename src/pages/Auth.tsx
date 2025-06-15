@@ -4,16 +4,31 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useToast } from '@/hooks/use-toast';
 import { Phone, Mail, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
 
+const countryCodes = [
+  { code: '+91', country: 'India', flag: '🇮🇳' },
+  { code: '+1', country: 'USA', flag: '🇺🇸' },
+  { code: '+44', country: 'UK', flag: '🇬🇧' },
+  { code: '+86', country: 'China', flag: '🇨🇳' },
+  { code: '+81', country: 'Japan', flag: '🇯🇵' },
+  { code: '+49', country: 'Germany', flag: '🇩🇪' },
+  { code: '+33', country: 'France', flag: '🇫🇷' },
+  { code: '+61', country: 'Australia', flag: '🇦🇺' },
+  { code: '+7', country: 'Russia', flag: '🇷🇺' },
+  { code: '+55', country: 'Brazil', flag: '🇧🇷' },
+];
+
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [authMethod, setAuthMethod] = useState<'phone' | 'email'>('phone');
-  const [phone, setPhone] = useState('');
+  const [authMethod, setAuthMethod] = useState<'phone' | 'email'>('email');
+  const [countryCode, setCountryCode] = useState('+91');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -35,19 +50,32 @@ const Auth = () => {
   const handlePhoneAuth = async () => {
     setLoading(true);
     try {
+      const fullPhoneNumber = `${countryCode}${phoneNumber}`;
+      
       if (!isOtpSent) {
         // Send OTP
         const { error } = await supabase.auth.signInWithOtp({
-          phone: phone,
+          phone: fullPhoneNumber,
           options: {
             data: {
               full_name: fullName,
-              phone: phone,
+              phone: fullPhoneNumber,
             }
           }
         });
 
-        if (error) throw error;
+        if (error) {
+          if (error.message.includes('phone_provider_disabled') || error.message.includes('Unsupported phone provider')) {
+            toast({
+              title: "Phone Authentication Not Available",
+              description: "Phone authentication is not enabled. Please use email authentication or contact support.",
+              variant: "destructive",
+            });
+            setAuthMethod('email');
+            return;
+          }
+          throw error;
+        }
 
         setIsOtpSent(true);
         toast({
@@ -57,7 +85,7 @@ const Auth = () => {
       } else {
         // Verify OTP
         const { error } = await supabase.auth.verifyOtp({
-          phone: phone,
+          phone: fullPhoneNumber,
           token: otp,
           type: 'sms'
         });
@@ -71,9 +99,10 @@ const Auth = () => {
         navigate('/');
       }
     } catch (error: any) {
+      console.error('Phone auth error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "An error occurred during phone authentication",
         variant: "destructive",
       });
     }
@@ -89,6 +118,12 @@ const Auth = () => {
           password,
         });
         if (error) throw error;
+        
+        toast({
+          title: "Success",
+          description: "Successfully signed in!",
+        });
+        navigate('/');
       } else {
         const { error } = await supabase.auth.signUp({
           email,
@@ -108,9 +143,10 @@ const Auth = () => {
         });
       }
     } catch (error: any) {
+      console.error('Email auth error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "An error occurred during email authentication",
         variant: "destructive",
       });
     }
@@ -129,9 +165,10 @@ const Auth = () => {
 
       if (error) throw error;
     } catch (error: any) {
+      console.error('Google auth error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "An error occurred during Google authentication",
         variant: "destructive",
       });
     }
@@ -141,7 +178,7 @@ const Auth = () => {
   const resetForm = () => {
     setIsOtpSent(false);
     setOtp('');
-    setPhone('');
+    setPhoneNumber('');
     setEmail('');
     setPassword('');
     setFullName('');
@@ -162,20 +199,6 @@ const Auth = () => {
         <div className="flex gap-2 p-1 bg-muted rounded-lg">
           <button
             onClick={() => {
-              setAuthMethod('phone');
-              resetForm();
-            }}
-            className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-md text-sm font-medium transition-colors ${
-              authMethod === 'phone'
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Phone className="h-4 w-4" />
-            Phone
-          </button>
-          <button
-            onClick={() => {
               setAuthMethod('email');
               resetForm();
             }}
@@ -188,79 +211,25 @@ const Auth = () => {
             <Mail className="h-4 w-4" />
             Email
           </button>
+          <button
+            onClick={() => {
+              setAuthMethod('phone');
+              resetForm();
+            }}
+            className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-md text-sm font-medium transition-colors ${
+              authMethod === 'phone'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Phone className="h-4 w-4" />
+            Phone
+          </button>
         </div>
 
         {/* Auth Form */}
         <div className="space-y-4">
-          {authMethod === 'phone' ? (
-            <>
-              {!isOtpSent ? (
-                <>
-                  {!isLogin && (
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Full Name</label>
-                      <Input
-                        type="text"
-                        placeholder="Enter your full name"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                      />
-                    </div>
-                  )}
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Phone Number</label>
-                    <Input
-                      type="tel"
-                      placeholder="+1234567890"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                    />
-                  </div>
-                  <Button
-                    onClick={handlePhoneAuth}
-                    disabled={loading || !phone}
-                    className="w-full"
-                  >
-                    {loading ? 'Sending...' : 'Send OTP'}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Enter OTP</label>
-                    <InputOTP
-                      maxLength={6}
-                      value={otp}
-                      onChange={(value) => setOtp(value)}
-                    >
-                      <InputOTPGroup>
-                        <InputOTPSlot index={0} />
-                        <InputOTPSlot index={1} />
-                        <InputOTPSlot index={2} />
-                        <InputOTPSlot index={3} />
-                        <InputOTPSlot index={4} />
-                        <InputOTPSlot index={5} />
-                      </InputOTPGroup>
-                    </InputOTP>
-                  </div>
-                  <Button
-                    onClick={handlePhoneAuth}
-                    disabled={loading || otp.length !== 6}
-                    className="w-full"
-                  >
-                    {loading ? 'Verifying...' : 'Verify OTP'}
-                  </Button>
-                  <Button
-                    onClick={resetForm}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    Back
-                  </Button>
-                </>
-              )}
-            </>
-          ) : (
+          {authMethod === 'email' ? (
             <>
               {!isLogin && (
                 <div>
@@ -307,6 +276,98 @@ const Auth = () => {
               >
                 {loading ? 'Processing...' : isLogin ? 'Sign In' : 'Sign Up'}
               </Button>
+            </>
+          ) : (
+            <>
+              {!isOtpSent ? (
+                <>
+                  {!isLogin && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Full Name</label>
+                      <Input
+                        type="text"
+                        placeholder="Enter your full name"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Phone Number</label>
+                    <div className="flex gap-2">
+                      <Select value={countryCode} onValueChange={setCountryCode}>
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover border border-border shadow-md">
+                          {countryCodes.map((country) => (
+                            <SelectItem key={country.code} value={country.code}>
+                              <div className="flex items-center gap-2">
+                                <span>{country.flag}</span>
+                                <span>{country.code}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        type="tel"
+                        placeholder="Enter phone number"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value.replace(/[^0-9]/g, ''))}
+                        className="flex-1"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Full number: {countryCode}{phoneNumber}
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handlePhoneAuth}
+                    disabled={loading || !phoneNumber || (!isLogin && !fullName)}
+                    className="w-full"
+                  >
+                    {loading ? 'Sending...' : 'Send OTP'}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Enter OTP</label>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      We sent a code to {countryCode}{phoneNumber}
+                    </p>
+                    <InputOTP
+                      maxLength={6}
+                      value={otp}
+                      onChange={(value) => setOtp(value)}
+                    >
+                      <InputOTPGroup>
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                        <InputOTPSlot index={3} />
+                        <InputOTPSlot index={4} />
+                        <InputOTPSlot index={5} />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </div>
+                  <Button
+                    onClick={handlePhoneAuth}
+                    disabled={loading || otp.length !== 6}
+                    className="w-full"
+                  >
+                    {loading ? 'Verifying...' : 'Verify OTP'}
+                  </Button>
+                  <Button
+                    onClick={resetForm}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Back
+                  </Button>
+                </>
+              )}
             </>
           )}
 
