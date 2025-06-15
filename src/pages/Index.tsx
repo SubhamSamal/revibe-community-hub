@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Search, User, Plus, Menu, X, Users, Settings, HelpCircle, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import ThemeToggle from '../components/ThemeToggle';
 import EventFeed from '../components/EventFeed';
 import DiscoveryPage from '../components/DiscoveryPage';
@@ -13,6 +14,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState('feed');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(false);
+  const { signOut } = useAuth();
 
   // Initialize theme on component mount
   useEffect(() => {
@@ -67,14 +69,11 @@ const Index = () => {
     if (itemId === 'profile') {
       setActiveTab('profile');
     } else if (itemId === 'settings') {
-      // Handle settings action
       console.log('Settings clicked');
     } else if (itemId === 'contact') {
-      // Handle contact action
       console.log('Contact us clicked');
     } else if (itemId === 'logout') {
-      // Handle logout action
-      console.log('Logout clicked');
+      signOut();
     }
     setIsMobileMenuOpen(false);
   };
